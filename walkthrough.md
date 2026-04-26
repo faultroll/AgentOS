@@ -1,37 +1,42 @@
-# AgentOS 架构演进路线 (Walkthrough)
+# AgentOS Phase 7: 记忆治理与架构解耦巡检
 
-## Phase 6: 治理、评估与 Busybox 系统级重构
+## 🚀 演进里程碑
 
-**代号：军刀 (Saber)**
+我们完成了 AgentOS 历史上最重要的一次“底盘手术”：将记忆管理从“应用修补”升级为了“内核态治理”。
 
-本次迭代极大深化了 OS 内核与 App 的边界，彻底完成了控制流倒置。
+### 1. 治理能力工具化 (Decoupled Governance)
 
-### 1. "Busybox" CLI 运行时重构
-- 现在的 `shell/cli.py` 表现地像一个真正的 OS 终端 / Rootfs。
-- **清除特例**：移除了代码中 `if app_name == "intent-proxy"` 这样的硬编码，取而代之的是动态 `importlib` 反射机制和签名侦测。只要将符合 `manifest.yaml` 声明与 `build_app()` 接口的包放入 `apps/` 目录下，CLI 就能在启动时即插即用地发现并加载它们。
-- **瞬态系统监控**：在 CLI REPL 会话中内置了 `/stats` 指令，能够不落盘地直接透传输出位于内核级 `TelemetryBus` 提供的大模型运行时耗、Token 开销和吞吐健康度等关键指标，坚持了内核态保持纯净的原则。
+我们将散落在应用节点中的复杂算法，下沉到了 Rootfs 的 `memory` 工具中。
 
-### 2. API 网关泛型化 (Dynamic Router)
-- 对 `shell/api.py` 的改造意味着它现在真正充当了 HTTP 请求的路由分配器。
-- 支持类似于 `model="intent-proxy:qwen"` 或 `"chatbot:gpt-4"` 的前缀解析模式，API 接口可以无缝地将 OpenAI 标准请求投送到内存中唤醒的不同 App 虚拟进程中，实现了网络访问通道对所有 App 无差别赋能。
+**重构对比**：
+- **旧模式**：各 App 自行计算索引、自行打捞意图（逻辑冗余、易出错）。
+- **新模式**：App 只需检测到信号，然后调用 `govern_context` 工具。
 
-### 3. Evaluator 守护进程 (Service App)
-- 新增 `apps/evaluator` 作为一个特殊的服务类 (Daemon) App：
-  - 拥有自己的 `manifest.yaml`，不需要对外暴露任何 Tool 接口，只需要配置 `read_file` 的权限。
-  - 它的角色是系统级的内省大内密探，在后台（独立调用模型与隔离记忆库）对系统的会话数据和 Telemetry 进行打分，完成了 LLM-as-Judge 的闭环，同时完全没有污染核心的执行流。
+### 2. 洁净 OS 测试体系
+
+为了贯彻“盲目性原则”，我们重构了测试目录：
+- **`tests/test_kernel/`**：仅验证 PCB 物理契约。
+- **`tests/test_tools/`**：验证工具物理逻辑（如 `test_governance_logic.py`），严禁 import apps。
+- **`apps/intent_proxy/tests/`**：验证应用集成流转。
+
+## 🛡️ 验证结果
+
+### L2 压缩物理流转
+- **输入**：8 条长消息。
+- **动作**：`govern_context` 执行 1+1+1+2 治理策略。
+- **产出**：消息缩减至 5 条，且真实摘要落盘至 `./tmp/test_mem_standalone/summaries/`。
+
+### L3 事实沉淀
+- 架构师通过 `[PERSIST]` 标签驱动 MCP 保存 `user_name.md`。
+- 新会话通过 `memory_recall_node` 完美加载历史事实，实现认知重生。
+
+## 🎬 实战录屏/日志
+
+```text
+22:10:48.330 [INFO] tools.memory: 🧠 [Memory Tool] Generating L2 Summary...
+22:10:48.335 [INFO] tools.memory: ✅ [MMU] Context folded: 8 -> 5.
+22:10:48.335 [INFO] MemoryFlowWar: ✅ 最终全链路：大满贯通过！
+```
 
 ---
-
-## Phase 5: v3 Big Bang 架构重构回顾
-
-### 内核状态纯粹化 (Kernel State)
-**Before**: `AgentState` 包含各类业务特定的字段从而形成巨石架构。
-**After**: `ProcessState` 蜕变为纯血的进程控制块 (PCB)，业务状态下放为不透明的 `app_state` 对象。
-
-### 算力分离与遥测 (Scheduler & Telemetry)
-**Before**: `router.py` 硬编码耦合度高，没有 OS 级的遥测系统。
-**After**: `telemetry.py` 和 `scheduler.py` 组合构成了监控收集和智能降级的完整计算平台。
-
-### 应用级闭环自治 (App Autonomy)
-**Before**: `prompts/` 作为全局目录指令化所有业务。
-**After**: 系统实现物理级别的沙盒隔离（自身的指令库 `prompts/` 和数据堆 `memory/` 脱离 OS 的感知域成为 App 私有财产）。
+*Verified by AI Staff per Phase 7.5 Completion.*

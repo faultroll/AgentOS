@@ -33,6 +33,10 @@ wheels/
 
 # AgentOS Logs & Temp files
 *.log
+tmp/
+test_guard_vault/
+test_gov_vault/
+test_mem_standalone/
 test_memory_vault/
 tests/**/test_memory_vault/
 .pytest_cache/

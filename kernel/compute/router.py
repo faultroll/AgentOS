@@ -64,8 +64,9 @@ async def call_llm(
         telemetry: TelemetryBus for event emission
         app_name: Which App is making this call (for telemetry)
     """
-    from config import ROUTER_CONFIG, ROUTER_MODELS
+    from config import ROUTER_CONFIG, ROUTER_MODELS, MODEL_METADATA
     from kernel.telemetry import global_telemetry
+    from kernel.compute.scheduler import ComputeScheduler
 
     # Fallback: if no model list provided, use full config sequence
     if not models_to_try:
@@ -76,15 +77,29 @@ async def call_llm(
     if telemetry is None:
         telemetry = global_telemetry
 
-    # =========================================================================
-    # 🚨 DEVELOPER RULE: ALL models must be in ROUTER_CONFIG.
-    # The Scheduler is responsible for filtering. The Router trusts it.
-    # =========================================================================
+    # Initialize a temporary scheduler or use global registry
+    # In a real OS, this would be a persistent kernel service
+    scheduler = ComputeScheduler(telemetry=telemetry)
+    scheduler.register_from_config(router_config or ROUTER_CONFIG, ROUTER_MODELS, MODEL_METADATA)
 
     payload_messages = []
     if system_prompt:
         payload_messages.append({"role": "system", "content": system_prompt})
     payload_messages.extend(messages)
+
+    total_chars = sum(len(str(m.get("content", ""))) for m in payload_messages)
+    estimated_tokens = int(total_chars / 3.5)
+    
+    # [REFINED] Best-effort: Try to find the best core, but NEVER skip all.
+    if not models_to_try:
+        models_to_try = scheduler.select_model(estimated_tokens=estimated_tokens)
+    
+    # If scheduler still returns empty (unlikely with our penalty logic), 
+    # fallback to the hardcoded list to ensure WE AT LEAST TRY.
+    if not models_to_try:
+        models_to_try = ROUTER_MODELS
+    
+    logger.debug(f"📊 [Router] Task Size: ~{estimated_tokens} tokens | Sequence: {models_to_try}")
 
     async with httpx.AsyncClient(timeout=120.0) as client:
         for model_alias in models_to_try:
@@ -116,14 +131,29 @@ async def call_llm(
                 token_out = usage.get("completion_tokens", 0)
 
                 choices = data.get("choices", [])
-                content_len = len(choices[0].get("message", {}).get("content", "")) if choices else 0
+                message_content = choices[0].get("message", {}).get("content", "") if choices else ""
+                content_len = len(message_content)
+                
+                # [REFINED] Physical Signal Injection
+                # We report signals EVEN IF successful, to let App decide on compression.
+                meta = MODEL_METADATA.get(model_alias, {})
+                model_limit = meta.get("context_window", 8192)
+                
+                finish_reason = choices[0].get("finish_reason") if choices else None
+                
+                if finish_reason == "length" or estimated_tokens > model_limit:
+                    logger.warning(f"⚠️ [Router] {model_alias} overflow detected (OVERFLOW)")
+                    data["os_signal"] = "CONTEXT_OVERFLOW"
+                elif estimated_tokens > model_limit * 0.8:
+                    logger.info(f"💡 [Router] {model_alias} under pressure (PRESSURE)")
+                    data["os_signal"] = "CONTEXT_PRESSURE"
 
                 # Billing guard
                 if cost > 0.0:
                     logger.warning(f"🚨 [Router] Non-free cost detected: ${cost}")
                 else:
                     logger.info(f"✅ [Router] OK (provider={provider.name}, len={content_len}, {elapsed_ms:.0f}ms)")
-
+                
                 # Emit telemetry
                 if telemetry:
                     telemetry.emit_llm_call(
@@ -176,6 +206,6 @@ async def call_llm(
                 continue
 
     # All attempts failed
-    error_msg = "All providers and models in router failed."
+    error_msg = "All providers and models in router failed to deliver service."
     logger.error(f"💀 [Router] {error_msg}")
     return {"choices": [{"message": {"role": "assistant", "content": f"Error: {error_msg}"}}]}

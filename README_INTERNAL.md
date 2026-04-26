@@ -24,6 +24,7 @@ AgentOS 是一个生产级的 **Agent Harness**（智能体操作系统）。它
 
 ## ⚡ 运行状态 (The Heartbeat)
 
+- **[Roadmap](ROADMAP.md)**: 我们长期的目标与进化路径。
 - **[Current Task](task.md)**: 我们现在正在做什么？
 - **[Execution Plan](implementation_plan.md)**: 下一步计划怎么做？
 - **[Walkthrough](walkthrough.md)**: 我们最近完成了什么？

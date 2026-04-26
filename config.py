@@ -49,6 +49,22 @@ PROVIDERS = {
 # The Scheduler uses this as its "CPU pool".
 # Format: { "model_alias": "provider_name" }
 
+# ====================== Model Registry (OS-level pool) ======================
+# The Scheduler uses this as its "CPU pool".
+# Format: { "model_alias": "provider_name" }
+
+# [NEW] Model Physical Specs (Used by Scheduler and Memory Tools)
+# context_window: max tokens allowed
+# cost_tier: "free" | "paid" | "premium"
+MODEL_METADATA = {
+    "architect-local": {"context_window": 32768, "cost_tier": "free", "tags": {"reasoning", "local"}},
+    "qwen/qwen3-coder:free": {"context_window": 8192, "cost_tier": "free", "tags": {"coding"}},
+    "tencent/hy3-preview:free": {"context_window": 32768, "cost_tier": "free", "tags": {"reasoning"}},
+    "google/gemma-4-26b-a4b-it:free": {"context_window": 8192, "cost_tier": "free", "tags": {"chat"}},
+    "nvidia/nemotron-3-super-120b-a12b:free": {"context_window": 4096, "cost_tier": "free", "tags": {"reasoning"}},
+    "qwen2.5-coder:7b": {"context_window": 128000, "cost_tier": "free", "tags": {"coding", "local"}},
+}
+
 ROUTER_CONFIG = {
     "architect-local": "local_engine",
     "qwen/qwen3-coder:free": "openrouter",

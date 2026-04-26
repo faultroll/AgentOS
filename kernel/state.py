@@ -1,43 +1,32 @@
 """AgentOS Kernel — Process State (Minimal PCB)
 
-This is the OS-level Process Control Block. It contains ONLY
-the fields that the kernel needs to schedule and manage processes.
-All application-specific state lives inside the opaque `app_state` dict.
+The Process Control Block (PCB) is the ONLY state carrier the kernel recognizes.
+Strictly decoupled from application frameworks like LangGraph.
 """
-from typing import TypedDict, Annotated, Optional
+from typing import TypedDict, Optional, Any
 import uuid
 
-
-def _merge_messages(left: list, right: list) -> list:
-    """Incremental message merge — LangGraph standard pattern."""
-    return left + right
-
-
 class ProcessState(TypedDict):
-    """Minimal OS-level PCB — knows nothing about app semantics."""
-    # Process identity
-    pid: str
-
-    # The universal NL bus — the ONLY channel for natural language
-    messages: Annotated[list[dict], _merge_messages]
-
-    # Resource accounting
-    token_usage: int
-
-    # Lifecycle
-    is_finished: bool
-
-    # Opaque container for app-specific state.
-    # The kernel carries it but never reads it.
-    app_state: dict
-
+    """
+    AgentOS PCB — 纯净的物理契约
+    内核不处理合并逻辑，只负责按地址/键值进行状态托管。
+    """
+    pid: str         # 进程唯一标识
+    messages: list   # 原始消息流 (NL Bus)
+    token_usage: int # 资源消耗审计
+    is_finished: bool# 生命周期标志
+    os_signal: Optional[str] # 内核中断信号 (如 CONTEXT_PRESSURE)
+    is_error: bool   # 异常标志
+    app_state: dict  # 应用私有内存 (内核透明)
 
 def create_process(query: str, app_name: str = "default") -> ProcessState:
-    """Create a new process with a fresh PID."""
+    """物理初始化一个 PCB 实例"""
     return {
         "pid": f"{app_name}-{uuid.uuid4().hex[:8]}",
         "messages": [{"role": "user", "content": query}],
         "token_usage": 0,
         "is_finished": False,
+        "os_signal": None,
+        "is_error": False,
         "app_state": {},
     }

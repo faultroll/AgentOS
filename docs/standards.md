@@ -16,6 +16,7 @@
 - ❌ **算力主权**：禁止为了修复特定 App 的 Bug 而向 Harness 内核注入业务硬编码。
 - ❌ **越权读取**：严禁 App A 读取 App B 的 Memory 或 Prompts (App Isolation)。
 - ❌ **禁止重复造轮子**：优先使用稳定的官方 MCP Server。
+- ❌ **内核加固红线**：禁止在无配套单元测试的情况下修改 `kernel/`。任何 Kernel 逻辑变更必须同步更新 `tests/` 目录下的测试用例。
 
 ## 3. 计费与模型策略
 - **强制白名单**：只能调用 `config.py` 列出的模型。

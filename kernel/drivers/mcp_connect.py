@@ -17,6 +17,9 @@ from mcp.client.stdio import stdio_client
 from mcp.shared.memory import create_connected_server_and_client_session
 
 import config
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
@@ -52,7 +55,7 @@ async def _connect_in_memory():
             await client_session.initialize()
         except Exception:
             pass  # mcp 1.27.0 中可能已内部初始化
-        print(" MCP 连接已建立 (in-memory)")
+        logger.info("🔌 [MCP] Connection established (in-memory)")
         yield client_session
 
 
@@ -83,5 +86,5 @@ async def _connect_stdio(server_name: str = "local_agent"):
     async with stdio_client(server_params) as (read, write):
         async with ClientSession(read, write) as session:
             await session.initialize()
-            print(f" MCP 连接已建立 (stdio: {server_name})")
+            logger.info(f"🔌 [MCP] Connection established (stdio: {server_name})")
             yield session

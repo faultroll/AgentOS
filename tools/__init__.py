@@ -35,5 +35,5 @@ def create_mcp_server(app_name: str, allowed_tools: list[str], memory_dir: str =
 
 # For backwards compatibility with standard fallback (like stdio external servers)
 # We provide a global default server with everything if not specified.
-from config import MEMORY_DIR
-mcp_server = create_mcp_server("default", ["calculator", "echo", "memory", "fetch_url", "read_file"], MEMORY_DIR)
+# 核心加固：设为 None 以允许 tools.memory 动态从 config.MEMORY_DIR 读取最新路径
+mcp_server = create_mcp_server("default", ["calculator", "echo", "memory", "fetch_url", "read_file"], None)

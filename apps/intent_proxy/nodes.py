@@ -36,13 +36,20 @@ def _load_prompt(filename: str) -> str:
         return f.read()
 
 
+# ====================== App Definitions ======================
+# 治理阈值已下沉至 Rootfs Tool 层
+
+
 # ====================== Core Node Logic ======================
 
 async def memory_recall_node(state: ProcessState) -> Dict[str, Any]:
     """[MEMORY - RECALL] Retrieve persistent facts via MCP."""
-    logger.info("🧠 [Memory] Retrieving persistent cognition via MCP...")
-
-    last_user_msg = [m["content"] for m in state["messages"] if m["role"] == "user"][-1]
+    user_messages = [m["content"] for m in state["messages"] if m["role"] == "user"]
+    if not user_messages:
+        logger.warning("⚠️ [Memory] No user message found in history. Skipping recall.")
+        return {"app_state": state.get("app_state", {})}
+    
+    last_user_msg = user_messages[-1]
 
     from kernel.drivers.mcp_connect import connect_mcp
     async with connect_mcp(transport="in_memory") as session:
@@ -100,21 +107,43 @@ async def architect_node(state: ProcessState) -> Dict[str, Any]:
 
     from config import DEBUG_MODE
     if DEBUG_MODE:
-        print(f"\n{'='*60}\n🧠 [Architect Thought]:\n{parsed['thought']}\n{'='*60}")
+        logger.info(f"🧠 [Architect] Thought compiled: {parsed['thought'][:100]}...")
 
     app_state["plan_intelligence"] = parsed
-    return {"app_state": app_state}
+    return {
+        "app_state": app_state,
+        "os_signal": state.get("os_signal") or intent_analysis_response.get("os_signal") # 逻辑加固：不抹除 PCB 既有信号
+    }
 
 
 async def context_audit_node(state: ProcessState) -> Dict[str, Any]:
-    """[GOVERNANCE] Context audit and pruning."""
-    MAX_TURNS = 10
+    """[GOVERNANCE] Context sweeper - offloads logic to Rootfs Memory Tool."""
+    import json
     messages = state["messages"]
-    if len(messages) > MAX_TURNS:
-        logger.info("✂️ [Audit] Context pruned for protection.")
-        pruned = [messages[0]] + messages[-(MAX_TURNS-1):]
-        return {"messages": pruned}
-    return {}
+    signal = state.get("os_signal")
+    
+    if not signal:
+        return {"os_signal": None}
+ 
+    from kernel.drivers.mcp_connect import connect_mcp
+    async with connect_mcp(transport="in_memory") as session:
+        # 调用全能治理工具
+        resp = await session.call_tool("govern_context", {
+            "messages_json": json.dumps(messages, ensure_ascii=False),
+            "os_signal": signal
+        })
+        
+        governed_json = resp.content[0].text
+        governed_messages = json.loads(governed_json)
+        
+        if len(governed_messages) == len(messages):
+             return {"os_signal": None}
+
+        logger.info(f"✅ [Audit] Context folded by Rootfs Tool: {len(messages)} -> {len(governed_messages)}")
+        return {
+            "messages": governed_messages,
+            "os_signal": None
+        }
 
 
 async def automated_executor_node(state: ProcessState) -> Dict[str, Any]:
@@ -129,7 +158,17 @@ async def automated_executor_node(state: ProcessState) -> Dict[str, Any]:
         plan_intelligence=app_state.get("plan_intelligence"),
     )
     app_state["final_response"] = response
-    return {"app_state": app_state}
+    
+    # 物理缝合：提取内容并确保持续记录 PCB 历史
+    content = response["choices"][0]["message"]["content"] if "choices" in response else "Error"
+    updated_messages = list(state["messages"])
+    updated_messages.append({"role": "assistant", "content": content})
+    
+    return {
+        "app_state": app_state,
+        "messages": updated_messages,
+        "os_signal": state.get("os_signal") or response.get("os_signal") # 逻辑加固：保障信号链路持续性
+    }
 
 
 async def memory_reflect_node(state: ProcessState) -> Dict[str, Any]:

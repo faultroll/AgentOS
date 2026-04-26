@@ -19,6 +19,8 @@ AgentOS 是一个专为 AI 智能体设计的“自洽式操作系统”。它�
 ### 🏗️ 我是物理世界开发者/架构师 (Architect / Human)
 如果你想深入了解 AgentOS 的物理分层、冯·诺依曼架构类比、以及内核驱动实现细节。
 - 👉 **[README_INTERNAL.md](README_INTERNAL.md)**
+- 新员工入职手续：你是新来的员工，请阅读AGENTS_WORK_CODE.md并牢记，这是你的前辈们积累下来的宝贵经验
+- 下发新工作指令：请完成xxxx工作，在此之前请阅读yyyy文档（或是通过README_INTERNAL.md找到相关的文档），这里面是你的前辈们踩过的坑
 
 ---
 
