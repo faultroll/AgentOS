@@ -1,0 +1,53 @@
+# Python env and cache
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+.env
+
+# Configs and local overrides
+config_local.py
+
+# Build/Dist
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# OS/IDE
+.DS_Store
+.vscode/
+.idea/
+
+# AgentOS Logs & Temp files
+*.log
+test_memory_vault/
+tests/**/test_memory_vault/
+.pytest_cache/
+htmlcov/
+.coverage
+
+# AgentOS Distributed Memory (OS Global & Autonomous Apps)
+# Ignore runtime files inside memory directories but PRESERVE the directory structure and .gitkeep
+**/memory/**/facts/*
+**/memory/**/summaries/*
+**/memory/**/preferences/*
+!**/memory/**/facts/.gitkeep
+!**/memory/**/summaries/.gitkeep
+!**/memory/**/preferences/.gitkeep
+
+# Ignore loose txt/db files globally in memory sandboxes
+**/memory/**/*.db
+**/memory/**/*.tmp

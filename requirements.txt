@@ -1,0 +1,21 @@
+# requirements.txt
+# Install: 
+#   1. conda create -n agent python=3.10
+#      conda activate agent
+#   2. pip install -r requirements.txt
+
+
+# 0. 核心框架（状态机与契约）
+langgraph>=1.0,<1.1
+pydantic>=2.0.0
+
+# 1. MCP官方协议包
+mcp>=1.11.0,<2.0
+
+# 2. Infra 必需依赖 (FastAPI/HTTPX)
+httpx>=0.27.0
+fastapi>=0.100.0
+uvicorn>=0.20.0
+
+# 3. 生产环境工具
+python-dotenv>=1.0.0

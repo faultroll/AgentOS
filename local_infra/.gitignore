@@ -1,0 +1,6 @@
+# 引擎二进制与模型文件 (重型物资)
+bin/
+models/
+temp.zip
+*.gguf
+llama_bin.zip

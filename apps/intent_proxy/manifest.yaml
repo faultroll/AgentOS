@@ -1,0 +1,22 @@
+name: intent-proxy
+version: 1.0.0
+description: "Intent compilation and execution gateway with Architect/Worker pipeline"
+
+# Tool registration (Driver-Device pattern)
+# Only tools listed here will be available to this App
+tools:
+  - memory
+  - fetch_url
+  - read_file
+
+# Compute preferences (hints to Scheduler, not mandates)
+compute:
+  preferred_tags:
+    - reasoning
+    - chat
+  fallback_strategy: sequential
+
+# Memory configuration
+memory:
+  scope: app
+  persistence: markdown

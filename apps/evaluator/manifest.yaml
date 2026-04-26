@@ -1,0 +1,14 @@
+name: evaluator
+version: 1.0.0
+description: "Background LLM-as-Judge service for systemic observability"
+
+tools:
+  - read_file # Needs this to read other app memories
+  
+compute:
+  preferred_tags:
+    - reasoning
+
+memory:
+  scope: app
+  persistence: markdown

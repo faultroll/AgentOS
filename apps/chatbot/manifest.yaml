@@ -1,0 +1,16 @@
+name: chatbot
+version: 1.0.0
+description: "Basic validation and conversation app for debugging"
+
+tools:
+  - calculator
+  - echo
+
+compute:
+  preferred_tags:
+    - chat
+  fallback_strategy: sequential
+
+memory:
+  scope: ephemeral
+  persistence: none
