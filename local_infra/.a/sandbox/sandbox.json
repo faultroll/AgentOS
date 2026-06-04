@@ -1,0 +1,71 @@
+{
+  "description": ".a Sandbox Security Policy",
+  "platforms": {
+    "darwin": {
+      "exec": "sandbox-exec",
+      "profile": "sandbox-darwin.sb"
+    },
+    "win32": {
+      "exec": "powershell",
+      "args": ["-ExecutionPolicy", "Bypass", "-File", "sandbox-win.ps1"]
+    },
+    "linux": {
+      "exec": "bwrap",
+      "args": ["--unshare-all", "--proc", "/proc"]
+    }
+  },
+  "filesystem": {
+    "readWrite": [
+      "$WORKSPACE_FOLDER"
+    ],
+    "readOnly": [
+      "/",
+      "$HOME/.cache",
+      "$HOME/.local/lib",
+      "$HOME/.local/share"
+    ],
+    "deny": [
+      "$HOME/Documents",
+      "$HOME/Desktop",
+      "$HOME/.ssh",
+      "$HOME/.aws"
+    ]
+  },
+  "network": {
+    "default": "deny",
+    "allow": [],
+    "deny": ["*"]
+  },
+  "commands": {
+    "allowed": [
+      "git",
+      "npm",
+      "pnpm",
+      "yarn",
+      "pip",
+      "uv",
+      "python",
+      "python3",
+      "node",
+      "cargo",
+      "rustc",
+      "go"
+    ],
+    "requireApproval": [
+      "rm",
+      "del",
+      "format",
+      "mkfs"
+    ],
+    "deny": [
+      "curl",
+      "wget",
+      "ssh",
+      "scp"
+    ]
+  },
+  "environment": {
+    "inherit": ["PATH", "HOME", "USER"],
+    "restrict": ["API_KEY", "SECRET", "PASSWORD", "TOKEN"]
+  }
+}

@@ -1,0 +1,543 @@
+# Build `.a` — A Reproducible Open Agent Runtime for VSCodium
+
+You are helping design and bootstrap a portable, reproducible, open-source AI coding runtime for VSCodium.
+
+This is NOT a “chatbot IDE”.
+
+The goal is:
+
+```text id="b7xv8x"
+Composable Agent Runtime
++
+Artifact-driven workflows
++
+Stateless workers
++
+Strong sandboxing
++
+Provider abstraction
+```
+
+The system should be repository-centric and reproducible.
+
+---
+
+# PRIMARY GOALS
+
+Build a `.a/` repository that can be cloned into any software project.
+
+The repository should provide:
+
+* AI coding workflow
+* multi-role agent orchestration
+* provider abstraction
+* transparent prompts
+* sandboxed execution
+* reproducible IDE configuration
+* disposable workers
+* persistent planner memory
+
+The final system should work primarily inside:
+
+* VSCodium
+* VSCode-compatible environments
+
+Target platform:
+
+* Windows (primary)
+* Linux/macOS compatible where possible
+
+---
+
+# REQUIRED ARCHITECTURE
+
+The system MUST separate:
+
+```text id="c9i91m"
+Planner
+≠
+Worker
+≠
+Reviewer
+```
+
+DO NOT implement a giant monolithic persistent chat.
+
+Instead implement:
+
+```text id="mjlwmx"
+Planner
+→ generates plan artifacts
+
+Worker
+→ executes isolated tasks
+
+Reviewer
+→ validates outputs
+```
+
+Workers MUST be disposable and stateless.
+
+---
+
+# REQUIRED VSCODIUM PLUGINS
+
+Research and integrate plugins that best satisfy the following layers.
+
+The solution should maximize:
+
+* openness
+* transparency
+* maintainability
+* provider flexibility
+* future survivability
+
+Avoid heavy vendor lock-in.
+
+---
+
+# LAYER 1 — PROVIDER / LLM ACCESS
+
+Need:
+
+* provider abstraction
+* OpenAI-compatible API support
+* OpenRouter support
+* llama.cpp support
+* local model support
+* transparent prompts/configuration
+
+Preferred plugins/frameworks:
+
+## 1. Continue
+
+Use as:
+
+* provider abstraction layer
+* prompt transparency layer
+* configurable role system
+
+Why:
+
+* config-driven
+* YAML/JSON prompt config
+* OpenAI-compatible APIs
+* local model support
+* strong transparency
+
+Investigate:
+
+* custom assistants
+* custom system prompts
+* slash commands
+* role configuration
+* context providers
+
+---
+
+## 2. Kilo Code
+
+Use as:
+
+* primary orchestration-oriented coding agent
+
+Investigate:
+
+* Architect mode
+* Code mode
+* Debug mode
+* subagents
+* orchestration
+* provider routing
+* role customization
+* tool approval flow
+
+Need to determine:
+
+* how transparent prompts are
+* whether custom modes can be injected
+* whether subagents can be isolated
+* whether contexts can be reset/disposed
+
+---
+
+# LAYER 2 — SANDBOX / SECURITY
+
+Need strong capability isolation.
+
+Prompt-based safety is NOT sufficient.
+
+Need:
+
+```text id="jlwmxy"
+OS/container-enforced isolation
+```
+
+Requirements:
+
+* shell approval
+* network approval
+* command filtering
+* workspace-only filesystem access
+
+Investigate:
+
+## Docker Desktop
+
+OR
+
+## Podman Desktop
+
+Need:
+
+* isolated workspace mounts
+* disposable execution containers
+* minimal wrapper scripts
+
+Need a wrapper system:
+
+```text id="1jlwmxy"
+Agent
+→ wrapper
+→ container
+→ workspace
+```
+
+Commands requiring approval:
+
+* shell
+* git
+* python execution
+* npm/pip installs
+* network access
+
+---
+
+# LAYER 3 — ORCHESTRATION
+
+Need lightweight orchestration.
+
+NOT giant autonomous systems.
+
+Need:
+
+* planner/worker flow
+* disposable workers
+* task artifacts
+* isolated execution
+* optional future swarm support
+
+Investigate:
+
+## Git Worktree Isolation
+
+Need support for:
+
+```text id="2jlwmxy"
+one worker
+=
+one isolated worktree
+```
+
+Potential workflow:
+
+```text id="3jlwmxy"
+Planner
+→ generates task
+
+Spawner
+→ creates isolated worktree
+
+Worker
+→ executes task
+
+Reviewer
+→ validates diff
+
+Planner
+→ integrates result
+```
+
+Need orchestration scripts.
+
+---
+
+# LAYER 4 — ARTIFACT SYSTEM
+
+All behavior should be repository-driven.
+
+Need:
+
+```text id="4jlwmxy"
+behavior as artifacts
+```
+
+Use markdown + YAML.
+
+Required structure:
+
+```text id="5jlwmxy"
+.a/
+│
+├── prompts/
+│   ├── planner.md
+│   ├── worker.md
+│   ├── reviewer.md
+│   └── walkthrough.md
+│
+├── providers/
+│   ├── planner.yaml
+│   └── worker.yaml
+│
+├── orchestration/
+│   ├── planner_worker.yaml
+│   ├── swarm.yaml
+│   └── escalation.yaml
+│
+├── sandbox/
+│   ├── permissions.yaml
+│   ├── docker-compose.yml
+│   └── wrappers/
+│
+├── memory/
+│   ├── architecture.md
+│   ├── conventions.md
+│   ├── roadmap.md
+│   └── decisions.md
+│
+├── tasks/
+├── plans/
+├── results/
+├── hooks/
+│   ├── post_task.py
+│   └── summarize.py
+│
+└── vscode/
+    ├── settings.json
+    ├── extensions.json
+    └── keybindings.json
+```
+
+---
+
+# REQUIRED BEHAVIOR
+
+## Planner
+
+Planner should:
+
+* reason
+* decompose
+* generate plans
+* maintain architecture memory
+
+Planner should NOT:
+
+* directly edit code
+* execute shell commands
+
+Planner output:
+
+```markdown id="6jlwmxy"
+PLAN-XXX.md
+```
+
+---
+
+## Worker
+
+Worker should:
+
+* consume task artifacts
+* modify ONLY allowed files
+* generate walkthroughs
+* produce result artifacts
+
+Worker MUST be stateless.
+
+Worker lifecycle:
+
+```text id="7jlwmxy"
+spawn
+→ execute
+→ summarize
+→ destroy context
+```
+
+Worker output:
+
+```markdown id="8jlwmxy"
+RESULT-XXX.md
+```
+
+---
+
+## Reviewer
+
+Reviewer should:
+
+* validate diffs
+* detect regressions
+* ensure style consistency
+
+---
+
+# REQUIRED TRANSPARENCY
+
+Need FULL visibility into:
+
+* prompts
+* system messages
+* model routing
+* tool usage
+* approvals
+* orchestration
+* memory artifacts
+
+Avoid hidden behavior.
+
+---
+
+# REQUIRED REPRODUCIBILITY
+
+Need:
+
+```text id="9jlwmxy"
+git clone
+→ bootstrap.ps1
+→ fully working AI runtime
+```
+
+Bootstrap should:
+
+* install/recommend extensions
+* configure VSCodium
+* start llama.cpp
+* configure providers
+* launch sandbox runtime
+* initialize `.a`
+
+---
+
+# REQUIRED OUTPUTS
+
+Generate:
+
+## 1. Extension Selection
+
+For each extension/framework:
+
+* purpose
+* strengths
+* weaknesses
+* transparency level
+* orchestration capability
+* provider flexibility
+* maintenance/activity level
+
+---
+
+## 2. Bootstrap Repository
+
+Generate:
+
+* directory structure
+* starter prompts
+* starter YAML configs
+* VSCodium settings
+* extension recommendations
+* orchestration scripts
+* sandbox wrappers
+
+---
+
+## 3. Disposable Worker Runtime
+
+Implement minimal proof-of-concept:
+
+```text id="0jlwmxy"
+spawn_worker.ps1
+```
+
+Should:
+
+* create git worktree
+* create isolated task workspace
+* launch disposable worker session
+* destroy worker after completion
+
+---
+
+## 4. Planner/Worker Protocol
+
+Define:
+
+* artifact contracts
+* handoff format
+* walkthrough format
+* escalation rules
+
+---
+
+# IMPORTANT DESIGN RULES
+
+## 1. Artifact-centric, NOT chat-centric
+
+Artifacts are source-of-truth.
+
+---
+
+## 2. Stateless workers
+
+Workers must be disposable.
+
+---
+
+## 3. Sandbox outside IDE
+
+Security must exist at OS/container layer.
+
+---
+
+## 4. Modular architecture
+
+Everything replaceable:
+
+* providers
+* prompts
+* orchestrators
+* sandboxes
+* models
+* plugins
+
+---
+
+## 5. Human-readable system
+
+Prefer:
+
+* markdown
+* YAML
+* filesystem artifacts
+
+Avoid opaque binary state.
+
+---
+
+# FINAL GOAL
+
+The final system should feel like:
+
+```text id="ajlwmxy"
+Open-source
+Composable
+Reproducible
+Agent-native
+Software engineering runtime
+```
+
+NOT:
+
+```text id="bjlwmxy"
+single giant AI chat
+```

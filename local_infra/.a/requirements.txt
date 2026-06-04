@@ -1,0 +1,17 @@
+# .a Workspace Dependencies
+
+# VSCodium 1.116.x (VSCode 1.116.0) - Multi-agent support
+vscodium_version=1.116.02821
+vscodium_url=https://github.com/VSCodium/vscodium/releases/download/${vscodium_version}/VSCodium-win32-x64-${vscodium_version}.zip
+
+# Extensions
+continue_version=1.2.22
+continue_url=https://github.com/continuedev/continue/releases/download/v${continue_version}-vscode/continue-win32-x64-${continue_version}.vsix
+
+kilo_version=7.3.8
+kilo_url=https://github.com/Kilo-Org/kilocode/releases/download/v${kilo_version}/kilo-vscode-win32-x64.vsix
+
+tiny_light_url=https://luqimin.gallery.vsassets.io/_apis/public/gallery/publisher/luqimin/extension/tiny-light/latest/assetbyname/Microsoft.VisualStudio.Services.VSIXPackage
+
+# Fonts (from Ubuntu repository)
+wqy_font_url=http://archive.ubuntu.com/ubuntu/pool/universe/f/fonts-wqy-zenhei/fonts-wqy-zenhei_0.9.45-8_all.deb

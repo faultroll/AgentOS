@@ -1,0 +1,48 @@
+# FastLLM
+conda create -n ftllm python=3.11
+conda activate ftllm
+pip install ftllm
+pip install https://hf-mirror.com/fastllm/fastllmdepend-windows/resolve/main/ftllmdepend-0.0.0.1-py3-none-win_amd64.whl
+conda install pytorch==2.5.1 torchvision==0.20.1 torchaudio==2.5.1 pytorch-cuda=12.4 -c pytorch -c nvidia
+
+# usage
+ftllm download deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B
+ftllm run --device cuda --dtype int4g DeepSeek-R1-Distill-Qwen-1.5B
+ftllm download deepseek-ai/DeepSeek-Coder-V2-Lite-Instruct
+ftllm webui --device cuda --moe_device "{'cuda':3,'cpu':7}" --dtype int4g --moe_dtype int8 DeepSeek-Coder-V2-Lite-Instruct
+# ? not support quant model (FastLLM Error: Embedding's weight's dim should be 2.)
+#ftllm download atbender/Qwen3.6-VL-REAP-26B-A3B --exclude "*safetensors*"
+#ftllm webui --device cuda --moe_device "{'cuda':3,'cpu':7}" ..\..\agentos\local_infra\models\Qwen3.6-VL-REAP-26B-A3B-text-Q4_K_M.gguf --ori .\Qwen3.6-VL-REAP-26B-A3B
+#ftllm download atbender/Qwen3.6-VL-REAP-26B-A3B-W4A16
+#ftllm webui --device cuda --moe_device "{'cuda':3,'cpu':7}" Qwen3.6-VL-REAP-26B-A3B-W4A16
+
+
+# KTransformers
+# ktransformers still have porblem
+conda install cuda-nvcc=12.4 -c nvidia
+conda install numpy
+pip install ktransformers
+
+
+# vLLM
+# long path support (New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" -Name "LongPathsEnabled" -Value 1 -PropertyType DWORD -Force)
+# vllm windows (https://github.com/SystemPanic/vllm-windows/releases/)
+# pytorch version (https://pytorch.org/get-started/previous-versions)
+conda create -n vllm python=3.12
+conda activate vllm
+pip install torch==2.11.0 torchvision==0.26.0 torchaudio==2.11.0 --index-url https://download.pytorch.org/whl/cu126
+#pip install vllm-0.19.0+cu124-cp312-cp312-win_amd64.whl --extra-index-url https://download.pytorch.org/whl/nightly/cu126
+pip install vllm-0.19.0+cu124-cp312-cp312-win_amd64.whl --extra-index-url https://download.pytorch.org/whl/cu126
+pip install llguidance xgrammar
+conda install cuda-toolkit=12.6 cuda-runtime=12.6 -c nvidia
+conda remove vswhere #Environments\vllm\etc\conda\activate.d\vs2017_get_vsinstall_dir.bat
+#Environments\vllm\etc\conda\activate.d\vs2017_compiler_vars.bat
+
+# usage
+set "PATH=%CONDA_PREFIX%\Library\bin;%PATH%"
+set "CUDA_PATH=%CONDA_PREFIX%\Library"
+set "CUDA_HOME=%CONDA_PREFIX%\Library"
+set "CUDA_LIB_PATH=%CONDA_PREFIX%\Library"
+vllm serve DeepSeek-R1-Distill-Qwen-1.5B --tensor-parallel-size 1 --max-num-seqs 1 --max-model-len 256 --quantization mxfp4 --dtype bfloat16 --kv-cache-dtype auto --gpu-memory-utilization 0.8 --enforce-eager
+# ? not support ncmoe
+#vllm serve Qwen3.6-VL-REAP-26B-A3B-W4A16 --tensor-parallel-size 1 --max-num-seqs 1 --max-model-len 32768 --quantization auto_round --dtype bfloat16 --kv-cache-dtype int8_per_token_head --gpu-memory-utilization 0.6 --enforce-eager --cpu-offload-gb 10 --cpu-offload-params experts --trust-remote-code --reasoning-parser qwen3 --enable-auto-tool-choice --tool-call-parser qwen3_coder

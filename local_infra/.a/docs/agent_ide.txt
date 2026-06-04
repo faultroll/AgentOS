@@ -1,0 +1,582 @@
+# AI Coding IDE Architecture Spec (Portable / Open-source / Reproducible)
+
+## Goal
+
+Build a portable, reproducible, cross-platform AI Coding IDE based on VSCodium.
+
+The system should behave more like a controllable software engineering runtime than a chat assistant.
+
+Core philosophy:
+
+* artifact-driven orchestration
+* stateless execution workers
+* persistent planner memory
+* capability-based isolation
+* reproducible workspace bootstrap
+* editor-first workflow
+* portable infrastructure
+* minimal vendor lock-in
+
+---
+
+# HARD REQUIREMENTS
+
+## Platform
+
+Must support:
+
+* Windows (primary)
+* Linux (secondary)
+* ideally macOS-compatible
+
+Must be:
+
+* portable
+* reproducible
+* repository-driven
+* bootstrap-able from git clone
+
+Avoid:
+
+* opaque installers
+* system pollution
+* tightly coupled IDE distributions
+* cloud lock-in
+
+---
+
+# IDE REQUIREMENTS
+
+## Editor
+
+Use:
+
+* VSCodium Portable
+* VSCode-compatible ecosystem
+
+Must support:
+
+* editor-aware context
+* diff visualization
+* file-aware AI operations
+* workspace indexing
+
+Reject:
+
+* terminal-first UX
+* chat-only workflow
+* browser-only IDEs
+
+---
+
+# AGENT ARCHITECTURE
+
+## Core Principle
+
+DO NOT use a single long-lived chat context.
+
+Instead implement:
+
+```text
+Planner → Plan Artifact → Stateless Worker → Result Artifact
+```
+
+The system must be artifact-centric, NOT chat-centric.
+
+---
+
+# AGENT TYPES
+
+## 1. Planner Agent (Persistent)
+
+Purpose:
+
+* architecture
+* decomposition
+* roadmap
+* project memory
+* coding conventions
+* design decisions
+* task generation
+
+Characteristics:
+
+* long-lived memory
+* persistent context
+* expensive reasoning allowed
+* low execution frequency
+
+Model candidates:
+
+* OpenRouter reasoning models
+* Claude-like APIs
+* GPT-4-class APIs
+
+Planner MUST NOT directly execute dangerous commands.
+
+Planner SHOULD primarily produce markdown artifacts.
+
+---
+
+## 2. Worker Agent (Stateless)
+
+Purpose:
+
+* implement isolated tasks
+* patch code
+* run local tests
+* fix local bugs
+* generate diffs
+
+Characteristics:
+
+* disposable
+* ephemeral context
+* no persistent memory
+* minimal context window
+* reset after task completion
+
+Worker context MUST include ONLY:
+
+* task document
+* target files
+* relevant symbols
+* minimal repository context
+
+Worker MUST NOT inherit full planner history.
+
+Worker lifecycle:
+
+```text
+spawn
+→ execute task
+→ produce result artifact
+→ destroy context
+```
+
+Model candidates:
+
+* local 7B–14B coder models
+* llama.cpp backend
+* Qwen2.5-Coder
+* DeepSeek-Coder
+* Codestral
+
+---
+
+## 3. Reviewer Agent (Optional)
+
+Purpose:
+
+* review diffs
+* style validation
+* regression detection
+* lightweight QA
+
+Characteristics:
+
+* extremely short-lived
+* deterministic
+* diff-focused
+
+---
+
+# CONTEXT MANAGEMENT
+
+## Critical Rule
+
+Context is NOT memory.
+
+Memory must be externalized into artifacts.
+
+Use:
+
+```text
+planner/
+tasks/
+results/
+memory/
+decisions/
+```
+
+NOT:
+
+```text
+giant persistent chat history
+```
+
+---
+
+# ARTIFACT PROTOCOL
+
+## Planner Output
+
+Example:
+
+```markdown
+# PLAN-001
+
+Goal:
+Implement OAuth login.
+
+Constraints:
+- preserve current auth API
+- support Google + GitHub
+
+Architecture Notes:
+...
+
+Target modules:
+- auth/*
+- db/*
+```
+
+---
+
+## Worker Input
+
+Example:
+
+```markdown
+# TASK-001
+
+Objective:
+Implement Google OAuth callback.
+
+Allowed files:
+- auth/google.py
+- routes/auth.py
+
+Tests:
+- oauth login integration test
+```
+
+---
+
+## Worker Output
+
+Example:
+
+```markdown
+# RESULT-001
+
+Modified files:
+- auth/google.py
+- routes/auth.py
+
+Summary:
+Implemented callback flow.
+
+Issues:
+Token refresh edge case unresolved.
+```
+
+---
+
+# SECURITY MODEL
+
+## CRITICAL REQUIREMENT
+
+Prompt-based safety is NOT sufficient.
+
+Need capability-level isolation.
+
+Reject architectures that rely ONLY on:
+
+```text
+"LLM please don't do dangerous things"
+```
+
+---
+
+# SANDBOX REQUIREMENTS
+
+IDE/plugin sandboxing is insufficient.
+
+Sandbox MUST exist outside the IDE.
+
+Preferred architecture:
+
+```text
+Agent
+→ wrapper
+→ container sandbox
+→ workspace
+```
+
+Possible technologies:
+
+* Docker
+* Podman
+* bubblewrap (Linux)
+* nsjail (Linux)
+
+Primary Windows recommendation:
+
+* Docker Desktop
+  OR
+* Podman Desktop
+
+---
+
+# COMMAND APPROVAL MODEL
+
+## Allowed Automatically
+
+* read
+* search
+* grep
+* symbol lookup
+* diff generation
+
+## Requires Manual Approval
+
+* shell execution
+* python execution
+* git operations
+* package installation
+* network access
+* curl/wget
+* docker commands
+
+## Explicitly Restricted
+
+* filesystem access outside workspace
+* credential access
+* destructive system commands
+* unrestricted PowerShell execution
+
+---
+
+# IDE PLUGIN STRATEGY
+
+## Recommended
+
+Primary:
+
+* RooCode
+
+Optional:
+
+* Continue.dev (framework role only)
+
+Avoid relying on:
+
+* prompt-only safety
+* giant monolithic agent chats
+* hidden memory accumulation
+
+---
+
+# MODEL BACKENDS
+
+## Local Models
+
+Primary backend:
+
+* llama.cpp server
+
+Requirements:
+
+* OpenAI-compatible API
+* portable deployment
+* lightweight runtime
+
+Candidate models:
+
+* Qwen2.5-Coder
+* DeepSeek-Coder
+* Codestral
+* StarCoder2
+
+---
+
+## Cloud Models
+
+Use:
+
+* OpenRouter
+
+Purpose:
+
+* planner reasoning
+* difficult architecture tasks
+* fallback intelligence
+
+---
+
+# MEMORY DESIGN
+
+## Persistent Planner Memory
+
+Store as artifacts:
+
+```text
+memory/
+  architecture.md
+  conventions.md
+  roadmap.md
+  decisions.md
+```
+
+Avoid hidden vector-only memory.
+
+Human-readable memory is preferred.
+
+---
+
+# REPOSITORY STRUCTURE
+
+Recommended:
+
+```text
+ai-workspace/
+│
+├── vscodium/
+├── planner/
+├── tasks/
+├── results/
+├── memory/
+├── models/
+├── sandbox/
+├── docker/
+├── scripts/
+├── configs/
+└── bootstrap.ps1
+```
+
+---
+
+# BOOTSTRAP REQUIREMENTS
+
+The entire environment must be reproducible via:
+
+```bash
+git clone ...
+bootstrap.ps1
+```
+
+Bootstrap responsibilities:
+
+* start llama.cpp server
+* launch sandbox containers
+* configure environment variables
+* inject IDE settings
+* configure RooCode
+* restore workspace state
+
+---
+
+# ARCHITECTURAL PHILOSOPHY
+
+The system is NOT:
+
+* chat-first
+* AI autocomplete
+* monolithic autonomous agent
+
+The system IS:
+
+```text
+software engineering runtime
++
+artifact orchestration layer
++
+controlled execution environment
+```
+
+---
+
+# IMPORTANT DESIGN PRINCIPLES
+
+## 1. Planner should think, not code
+
+Planner generates:
+
+* plans
+* architecture
+* decomposition
+* constraints
+
+NOT implementation-heavy edits.
+
+---
+
+## 2. Workers should execute, not remember
+
+Workers are disposable execution units.
+
+No long-term memory.
+
+No giant context.
+
+No persistent chat contamination.
+
+---
+
+## 3. Context must be minimized aggressively
+
+Small context =
+
+* cheaper
+* faster
+* more stable
+* less hallucination
+* better diff consistency
+
+---
+
+## 4. Artifacts are the source of truth
+
+Plans, tasks, results, decisions:
+
+ALL persisted as files.
+
+NOT hidden inside chats.
+
+---
+
+## 5. Sandbox outside the IDE
+
+IDE is UI only.
+
+Security boundary must exist at:
+
+* container layer
+* OS layer
+* wrapper layer
+
+NOT prompt layer.
+
+---
+
+# SUCCESS CRITERIA
+
+The final system should enable:
+
+```text
+Planner
+→ creates plan artifacts
+
+Worker
+→ executes isolated tasks
+
+Reviewer
+→ validates diffs
+
+All contexts
+→ reproducible
+→ disposable
+→ controllable
+→ portable
+```
+
+while maintaining:
+
+* low token consumption
+* low context pollution
+* strong reproducibility
+* strong portability
+* backend flexibility
+* open-source infrastructure
+* capability-based safety

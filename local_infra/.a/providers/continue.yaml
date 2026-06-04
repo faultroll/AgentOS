@@ -1,0 +1,51 @@
+name: .a Provider Configuration
+version: 1.0.0
+description: Default provider configuration for .a workspace
+
+models:
+  - name: Qwen2.5-Coder 7B (Local)
+    provider: ollama
+    model: qwen2.5-coder:7b
+    apiBase: http://127.0.0.1:11434
+    roles:
+      - chat
+      - edit
+      - apply
+
+  - name: Qwen2.5-Coder 1.5B (Autocomplete)
+    provider: ollama
+    model: qwen2.5-coder:1.5b
+    apiBase: http://127.0.0.1:11434
+    roles:
+      - autocomplete
+
+  - name: GPT-4o (Cloud Fallback)
+    provider: openai
+    model: gpt-4o
+    apiKey: ${OPENAI_API_KEY}
+    roles:
+      - chat
+      - edit
+
+  - name: Claude 3.5 Sonnet (Cloud Fallback)
+    provider: anthropic
+    model: claude-3.5-sonnet-20240620
+    apiKey: ${ANTHROPIC_API_KEY}
+    roles:
+      - chat
+      - edit
+
+tabAutocompleteModel:
+  name: Qwen2.5-Coder 1.5B (Autocomplete)
+  provider: ollama
+  model: qwen2.5-coder:1.5b
+  apiBase: http://127.0.0.1:11434
+
+contextProviders:
+  - name: folder
+    type: folder
+  - name: code
+    type: codebase
+    type: open
+
+allowAnonymousTelemetry: false

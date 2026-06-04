@@ -1,0 +1,46 @@
+name: .a Kilo Configuration
+version: 1.0.0
+description: Default orchestration configuration for .a workspace
+
+apiProvider: openai-compatible
+apiBase: http://127.0.0.1:11434
+model: qwen2.5-coder:7b
+
+modes:
+  architect:
+    promptPath: .a/prompts/planner.md
+    description: Task planning and decomposition
+
+  code:
+    promptPath: .a/prompts/worker.md
+    description: Code implementation
+
+  debug:
+    description: Bug diagnosis and fixes
+
+  ask:
+    description: General questions
+
+customModes:
+  reviewer:
+    promptPath: .a/prompts/reviewer.md
+    description: Code review and validation
+
+agentManager:
+  worktreeIsolation: true
+  maxParallelAgents: 2
+  autoDispose: true
+
+sandbox:
+  configPath: .a/sandbox/sandbox.json
+  enabled: true
+
+memoryBank:
+  enabled: true
+  paths:
+    - .a/memory/architecture.md
+    - .a/memory/conventions.md
+
+subagents:
+  enabled: true
+  maxWorkers: 2
